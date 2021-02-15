@@ -1,0 +1,47 @@
+# Template file for 's6-linux-init'
+pkgname=s6-linux-init
+version=1.0.6.3
+revision=1
+build_style=configure
+configure_args="--libdir=/usr/lib --includedir=/usr/include
+ --with-sysdeps=${XBPS_CROSS_BASE}/usr/lib/skalibs/sysdeps
+ --with-lib=${XBPS_CROSS_BASE}/usr/lib --bindir=/usr/bin"
+makedepends="skalibs-devel execline-devel s6-devel"
+depends="s6 s6-rc"
+short_desc="Init system using s6 and s6-rc"
+maintainer="Colin Booth <colin@heliocat.net>"
+license="ISC"
+homepage="https://skarnet.org/software/s6-linux-init"
+changelog="https://skarnet.org/software/s6-linux-init/upgrade.html"
+distfiles="${homepage}/${pkgname}-${version}.tar.gz"
+checksum=29e368516b1a3c61a6d1f8680645cc122a2e02127debec91738f170a3b93b8c5
+
+alternatives="
+ void-init:/usr/bin/init:/etc/s6-linux-init/current/bin/init
+ void-init:/usr/bin/halt:/etc/s6-linux-init/current/bin/halt
+ void-init:/usr/bin/poweroff:/etc/s6-linux-init/current/bin/poweroff
+ void-init:/usr/bin/reboot:/etc/s6-linux-init/current/bin/reboot
+ void-init:/usr/bin/shutdown:/etc/s6-linux-init/current/bin/shutdown"
+
+conf_files="/etc/s6-linux-init/skel/*"
+
+case "$XBPS_TARGET_MACHINE" in
+	*-musl)
+		makedepends+=" nsss-devel"
+		configure_args+=" --enable-nsss --with-include=${XBPS_CROSS_BASE}/usr/include/nsss"
+		;;
+esac
+
+post_install() {
+	vlicense COPYING
+	vdoc README
+	vcopy "doc/*" usr/share/doc/${pkgname}
+}
+
+s6-linux-init-devel_package() {
+	short_desc+=" - libraries and headers"
+	pkg_install() {
+		vmove usr/include
+		vmove usr/lib/*.a
+	}
+}
